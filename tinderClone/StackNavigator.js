@@ -8,7 +8,7 @@ import ChatScreen from "./Screens/ChatScreen";
 import LoginScreen from "./Screens/LoginScreen";
 
 const Stack = createNativeStackNavigator();
-const user = true;
+const user = false;
 const StackNavigator = () => {
   return (
     <Stack.Navigator initialRouteName="Home">
