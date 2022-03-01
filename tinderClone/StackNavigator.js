@@ -6,10 +6,11 @@ import HomeScreen from "./Screens/HomeScreen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import ChatScreen from "./Screens/ChatScreen";
 import LoginScreen from "./Screens/LoginScreen";
+import useAuth from "./hooks/AuthProvider";
 
 const Stack = createNativeStackNavigator();
-const user = false;
 const StackNavigator = () => {
+  const { user } = useAuth();
   return (
     <Stack.Navigator initialRouteName="Home">
       {user ? (
