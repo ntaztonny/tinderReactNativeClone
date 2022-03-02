@@ -7,16 +7,22 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import ChatScreen from "./Screens/ChatScreen";
 import LoginScreen from "./Screens/LoginScreen";
 import useAuth from "./hooks/AuthProvider";
+import LogOutScreen from "./Screens/LogOutScreen";
 
 const Stack = createNativeStackNavigator();
 const StackNavigator = () => {
   const { user } = useAuth();
+
   return (
-    <Stack.Navigator initialRouteName="Home">
+    <Stack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName="Home"
+    >
       {user ? (
         <>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
+          <Stack.Screen name="LogOut" component={LogOutScreen} />
         </>
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} />

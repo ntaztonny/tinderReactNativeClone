@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import * as Google from "expo-google-app-auth";
 import {
   GoogleAuthProvider,
@@ -7,12 +13,13 @@ import {
   signOut,
 } from "@firebase/auth";
 import { auth } from "../firebase";
+
+// Create environmental variables to add the config IDs
 import {
   androidClientIdconfig,
   iosClientIdconfig,
 } from "../autheticationServices/userAuthClientID";
 
-// Create environmental variables to add the keys
 export const statecontext = createContext({});
 
 const config = {
@@ -25,19 +32,21 @@ const config = {
 export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
-  const [loadingInitial, setLoadingInitial] = useState(true);
   const [loading, setLoading] = useState(false);
-  useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        //loggin the user
-        setUser(user);
-      } else {
-        setUser(null);
-      }
-      setLoadingInitial(false);
-    });
-  }, []);
+  const [loadingInitial, setLoadingInitial] = useState(true);
+  useEffect(
+    () =>
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          //loggin the user
+          setUser(user);
+        } else {
+          setUser(null);
+        }
+        setLoadingInitial(false);
+      }),
+    []
+  );
 
   const logOut = () => {
     setLoading(true);
@@ -62,6 +71,16 @@ export const AuthProvider = ({ children }) => {
       .finally(() => setLoading(false));
   };
 
+  const memoedValue = useMemo(
+    () => ({
+      user,
+      loading,
+      error,
+      signInWithGoogle,
+      logOut,
+    }),
+    [user, loading, error]
+  );
   return (
     <statecontext.Provider
       value={{ user, loading, error, signInWithGoogle, logOut }}
