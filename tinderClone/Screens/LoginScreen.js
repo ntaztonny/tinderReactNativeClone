@@ -14,9 +14,6 @@ import tw from "tailwind-rn";
 const LoginScreen = () => {
   const navigation = useNavigation();
 
-  // useLayoutEffect(() => {
-  //   navigation.setOptions({ headerShown: false });
-  // }, []);
   const { signInWithGoogle, loading } = useAuth();
   return (
     <View style={tw("flex-1")}>
