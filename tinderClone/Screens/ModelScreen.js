@@ -1,14 +1,44 @@
 import { View, Text, Image, TextInput, TouchableOpacity } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import tw from "tailwind-rn";
 import useAuth from "../hooks/AuthProvider";
+import { useNavigation } from "@react-navigation/native";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 const ModelScreen = () => {
+  const navigation = useNavigation();
   const { user } = useAuth();
-  const [Image, setImage] = useState(null);
-  const [Job, setJob] = useState(null);
-  const [Age, setAge] = useState(null);
-  //const incompleteForm = !Image || !Job || !Age;
+  const [image, setimage] = useState(null);
+  const [job, setJob] = useState(null);
+  const [age, setAge] = useState(null);
+  const incompleteForm = !image || !job || !age;
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerTitle: "Update your profile",
+      headerStyle: {
+        backgroundColor: "#FF5864",
+      },
+      headerTitleStyle: { color: "white" },
+    });
+  }, []);
+
+  const updateUserProfile = () => {
+    setDoc(doc(db, "users", user.uid), {
+      id: user.uid,
+      displayName: user.displayName,
+      photoURL: image,
+      job: job,
+      age: age,
+      timestamp: serverTimestamp(),
+    })
+      .then(() => {
+        navigation.navigate("Home");
+      })
+      .catch((e) => alert(e.message));
+  };
 
   return (
     <View style={tw("flex-1 items-center pt-1")}>
@@ -24,9 +54,9 @@ const ModelScreen = () => {
         Step 1: The profile Pic
       </Text>
       <TextInput
-        value={Image}
+        value={image}
         onChangeText={(text) => {
-          setImage(text);
+          setimage(text);
         }}
         placeholder="enter profile pic URL"
       />
@@ -34,7 +64,7 @@ const ModelScreen = () => {
         Step 2: The Job
       </Text>
       <TextInput
-        value={Job}
+        value={job}
         onChangeText={(text) => {
           setJob(text);
         }}
@@ -44,16 +74,22 @@ const ModelScreen = () => {
         Step 3: The Age
       </Text>
       <TextInput
-        placeholder="enter your age"
-        value={Age}
+        value={age}
         onChangeText={(text) => {
-          setImage(setAge(text));
+          setAge(text);
         }}
+        placeholder="enter your age"
+        keyboardType="numeric"
+        maxLength={2}
       />
 
       <TouchableOpacity
-        // disabled={incompleteForm}
-        style={tw("w-64 p-3 rounded-xl absolute bottom-10 bg-red-400 ")}
+        disabled={incompleteForm}
+        style={[
+          tw("w-64 p-3 rounded-xl absolute bottom-10 "),
+          incompleteForm ? tw("bg-gray-400") : tw("bg-red-400"),
+        ]}
+        onPress={updateUserProfile}
       >
         <Text style={tw("text-center text-white text-xl")}>Update profile</Text>
       </TouchableOpacity>
