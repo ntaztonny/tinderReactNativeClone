@@ -7,18 +7,49 @@ import {
   Image,
   StyleSheet,
 } from "react-native";
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import useAuth from "../hooks/AuthProvider";
 import tw from "tailwind-rn";
 import { Ionicons, AntDesign, Entypo } from "@expo/vector-icons";
 import Swiper from "react-native-deck-swiper";
+import { collection, doc, onSnapshot, setDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { user, logOut } = useAuth();
   const swipeRef = useRef(null);
+  const [profiles, setProfiles] = useState([]);
 
+  useLayoutEffect(
+    () =>
+      onSnapshot(doc(db, "users", user.uid), (snapshot) => {
+        if (!snapshot.exists()) {
+          navigation.navigate("Model");
+        }
+      }),
+    []
+  );
+
+  useEffect(() => {
+    let unsub;
+    const fetchCards = async () => {
+      unsub = onSnapshot(collection(db, "users"), (snapshots) => {
+        setProfiles(
+          snapshots.docs
+            .filter((doc) => doc.id !== user.uid)
+            .map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }))
+        );
+      });
+    };
+    fetchCards();
+  }, []);
+
+  // const swipeLeft = async () => {};
   const DATA = [
     {
       firstName: "Isaac",
@@ -99,17 +130,23 @@ const HomeScreen = () => {
         <Swiper
           ref={swipeRef}
           containerStyle={{ backgroundColor: "transparent" }}
-          cards={DATA}
+          cards={profiles}
           stackSize={5}
           cardIndex={0}
           animateCardOpacity
           verticalSwipe={false}
-          onSwipedLeft={() => {
-            console.log("Swipped left");
-          }}
-          onSwipedRight={() => {
-            console.log("Swipped Right");
-          }}
+          // onSwipedLeft={(cardIndex) => {
+          //   if (!profiles[cardIndex]) return;
+          //   const userSwiped = profiles[cardIndex];
+          //   console.log(`You swiped PASS on ${userSwiped.displayName}`);
+          //   setDoc(
+          //     doc(db, "users", user.uid, "passes", userSwiped.id),
+          //     userSwipped
+          //   );
+          // }}
+          // onSwipedRight={(cardIndex) => {
+          //   console.log("Swipped Right");
+          // }}
           backgroundColor={"#4FD0E9"}
           overlayLabels={{
             left: {
@@ -130,33 +167,52 @@ const HomeScreen = () => {
               },
             },
           }}
-          renderCard={(card) => (
-            <View
-              key={card.id}
-              style={tw("relative bg-white h-3/4 rounded-xl")}
-            >
-              <Image
-                style={tw("absolute top-0 h-full w-full rounded-xl")}
-                source={{ uri: card.photoURL }}
-              />
+          renderCard={(card) =>
+            card ? (
+              <View
+                key={card.id}
+                style={tw("relative bg-white h-3/4 rounded-xl")}
+              >
+                <Image
+                  style={tw("absolute top-0 h-full w-full rounded-xl")}
+                  source={{ uri: card.photoURL }}
+                />
+                <View
+                  style={[
+                    tw(
+                      "absolute bottom-0 bg-white flex-row w-full justify-between items-center h-20 px-6 py-2 rounded-b-xl"
+                    ),
+                    styles.cardStyles,
+                  ]}
+                >
+                  <View>
+                    <Text style={tw("text-xl font-bold")}>
+                      {card.firstName} {card.lastName}
+                    </Text>
+                    <Text>{card.occupation}</Text>
+                  </View>
+                  <Text style={tw("text-2xl font-bold")}>{card.age}</Text>
+                </View>
+              </View>
+            ) : (
               <View
                 style={[
                   tw(
-                    "absolute bottom-0 bg-white flex-row w-full justify-between items-center h-20 px-6 py-2 rounded-b-xl"
+                    "relative bg-white h-3/4 rounded-xl justify-center items-center"
                   ),
-                  styles.cardStyles,
+                  styles.cardShadow,
                 ]}
               >
-                <View>
-                  <Text style={tw("text-xl font-bold")}>
-                    {card.firstName} {card.lastName}
-                  </Text>
-                  <Text>{card.occupation}</Text>
-                </View>
-                <Text style={tw("text-2xl font-bold")}>{card.age}</Text>
+                <Text style={tw("font-bold pb-5")}>No more profiles</Text>
+                <Image
+                  style={tw("h-20 w-full")}
+                  height={100}
+                  width={100}
+                  source={{ uri: "https://links.papareact.com/6gb" }}
+                />
               </View>
-            </View>
-          )}
+            )
+          }
         />
       </View>
       <View style={tw("flex flex-row  justify-center")}>
@@ -196,6 +252,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
     elevation: 2,
+  },
+  cardShadow: {
+    flex: 1,
   },
 });
 export default HomeScreen;
