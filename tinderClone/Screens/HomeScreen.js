@@ -13,8 +13,20 @@ import useAuth from "../hooks/AuthProvider";
 import tw from "tailwind-rn";
 import { Ionicons, AntDesign, Entypo } from "@expo/vector-icons";
 import Swiper from "react-native-deck-swiper";
-import { collection, doc, onSnapshot, setDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  DocumentSnapshot,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  setDoc,
+  where,
+} from "firebase/firestore";
 import { db } from "../firebase";
+import generateID from "../lib/generateID";
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -35,21 +47,85 @@ const HomeScreen = () => {
   useEffect(() => {
     let unsub;
     const fetchCards = async () => {
-      unsub = onSnapshot(collection(db, "users"), (snapshots) => {
-        setProfiles(
-          snapshots.docs
-            .filter((doc) => doc.id !== user.uid)
-            .map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }))
-        );
-      });
+      //get the already made "NO swipes" so that they can't reswipe on them again
+      const passes = await getDocs(
+        collection(db, "users", user.uid, "passes")
+      ).then((snapshot) => snapshot.docs.map((doc) => doc.id));
+
+      //get the already made "YES swipes" so that they can't reswipe on them again
+      const swipes = await getDocs(
+        collection(db, "users", user.uid, "swipes")
+      ).then((snapshot) => snapshot.docs.map((doc) => doc.id));
+
+      //Filter the passes (aka nope!) and also the swipes (aka YES!)
+      const passedUsers = passes.length > 0 ? passes : ["test"];
+      const swipedUsers = swipes.length > 0 ? swipes : ["test"];
+
+      unsub = onSnapshot(
+        query(
+          collection(db, "users"),
+          where("id", "not-in", [...passedUsers, ...swipedUsers])
+        ),
+        (snapshot) => {
+          setProfiles(
+            snapshot.docs
+              .filter((doc) => doc.id !== user.uid)
+              .map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }))
+          );
+        }
+      );
     };
     fetchCards();
-  }, []);
+  }, [db]);
 
-  // const swipeLeft = async () => {};
+  const swipeLeft = (cardIndex) => {
+    if (!profiles[cardIndex]) return;
+    const userSwiped = profiles[cardIndex];
+    console.log(`You swiped PASS on ${userSwiped.displayName}`);
+    setDoc(doc(db, "users", user.uid, "passes", userSwiped.id), userSwiped);
+  };
+  const swipeRight = (cardIndex) => {
+    if (!profiles[cardIndex]) return;
+    const userSwiped = profiles[cardIndex];
+    const loggedInProfile = getDoc(db, "users", user.uid).data();
+
+    //check if user swiped on the user
+    getDoc(doc(db, "users", userSwiped.id, "swipes", user.uid)).then(
+      (documentSnapshot) => {
+        if (documentSnapshot.exists()) {
+          //user has matched on you before you matched on them
+          console.log(`Oh0 Oho..., You MATCHED with ${userSwiped.displayName}`);
+          setDoc(
+            doc(db, "users", user.uid, "swipes", userSwiped.id),
+            userSwiped
+          );
+
+          // Create a match
+          setDoc(doc(db, "matches", generateID(user.uid, userSwiped.uid)), {
+            users: { [user.uid]: loggedInProfile, [userSwiped]: userSwiped },
+            usersMatched: [user.uid, userSwiped],
+            timestamp: serverTimestamp(),
+          });
+          navigation.navigate("Match", {
+            loggedInProfile,
+            userSwiped,
+          });
+        } else {
+          //this current user is the first to swipe on the person or didnt get swipped on
+          console.log(
+            `You swiped YES on ${userSwiped.displayName} ${userSwiped.job}`
+          );
+          setDoc(
+            doc(db, "users", user.uid, "swipes", userSwiped.id),
+            userSwiped
+          );
+        }
+      }
+    );
+  };
   const DATA = [
     {
       firstName: "Isaac",
@@ -135,18 +211,8 @@ const HomeScreen = () => {
           cardIndex={0}
           animateCardOpacity
           verticalSwipe={false}
-          // onSwipedLeft={(cardIndex) => {
-          //   if (!profiles[cardIndex]) return;
-          //   const userSwiped = profiles[cardIndex];
-          //   console.log(`You swiped PASS on ${userSwiped.displayName}`);
-          //   setDoc(
-          //     doc(db, "users", user.uid, "passes", userSwiped.id),
-          //     userSwipped
-          //   );
-          // }}
-          // onSwipedRight={(cardIndex) => {
-          //   console.log("Swipped Right");
-          // }}
+          onSwipedLeft={swipeLeft}
+          onSwipedRight={swipeRight}
           backgroundColor={"#4FD0E9"}
           overlayLabels={{
             left: {

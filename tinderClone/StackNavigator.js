@@ -9,6 +9,7 @@ import LoginScreen from "./Screens/LoginScreen";
 import useAuth from "./hooks/AuthProvider";
 import LogOutScreen from "./Screens/LogOutScreen";
 import ModelScreen from "./Screens/ModelScreen";
+import MatchScreen from "./Screens/MatchScreen";
 
 const Stack = createNativeStackNavigator();
 const StackNavigator = () => {
@@ -27,6 +28,9 @@ const StackNavigator = () => {
           </Stack.Group>
           <Stack.Group screenOptions={{ presentation: "modal" }}>
             <Stack.Screen name="Model" component={ModelScreen} />
+          </Stack.Group>
+          <Stack.Group screenOptions={{ presentation: "transparentModal" }}>
+            <Stack.Screen name="Match" component={MatchScreen} />
           </Stack.Group>
         </>
       ) : (
