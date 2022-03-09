@@ -16,7 +16,7 @@ import Swiper from "react-native-deck-swiper";
 import {
   collection,
   doc,
-  DocumentSnapshot,
+  documentSnapshot,
   getDoc,
   getDocs,
   onSnapshot,
@@ -87,10 +87,13 @@ const HomeScreen = () => {
     console.log(`You swiped PASS on ${userSwiped.displayName}`);
     setDoc(doc(db, "users", user.uid, "passes", userSwiped.id), userSwiped);
   };
-  const swipeRight = (cardIndex) => {
+  const swipeRight = async (cardIndex) => {
     if (!profiles[cardIndex]) return;
     const userSwiped = profiles[cardIndex];
-    const loggedInProfile = getDoc(db, "users", user.uid).data();
+
+    const loggedInProfile = await (
+      await getDoc(doc(db, "users", user.uid))
+    ).data();
 
     //check if user swiped on the user
     getDoc(doc(db, "users", userSwiped.id, "swipes", user.uid)).then(
@@ -102,16 +105,21 @@ const HomeScreen = () => {
             doc(db, "users", user.uid, "swipes", userSwiped.id),
             userSwiped
           );
-
-          // Create a match
-          setDoc(doc(db, "matches", generateID(user.uid, userSwiped.uid)), {
-            users: { [user.uid]: loggedInProfile, [userSwiped]: userSwiped },
-            usersMatched: [user.uid, userSwiped],
-            timestamp: serverTimestamp(),
-          });
+          //change to matchng screen
           navigation.navigate("Match", {
             loggedInProfile,
             userSwiped,
+          });
+          // Create a match ==========================
+          // The matching code doesnt seem to work!! try debugging it tomorrow
+
+          setDoc(doc(db, "matches", generateID(user.uid, userSwiped.uid)), {
+            users: {
+              [user.uid]: loggedInProfile,
+              [userSwiped.id]: userSwiped,
+            },
+            usersMatched: [user.uid, userSwiped.id],
+            timestamp: serverTimestamp(),
           });
         } else {
           //this current user is the first to swipe on the person or didnt get swipped on
