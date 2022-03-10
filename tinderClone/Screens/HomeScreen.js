@@ -113,7 +113,7 @@ const HomeScreen = () => {
           // Create a match ==========================
           // The matching code doesnt seem to work!! try debugging it tomorrow
 
-          setDoc(doc(db, "matches", generateID(user.uid, userSwiped.uid)), {
+          setDoc(doc(db, "matches", generateID(user.uid, userSwiped.id)), {
             users: {
               [user.uid]: loggedInProfile,
               [userSwiped.id]: userSwiped,
