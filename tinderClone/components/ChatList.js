@@ -3,27 +3,40 @@ import React, { useEffect, useState } from "react";
 import tw from "tailwind-rn";
 import { collection, doc, onSnapshot, where } from "firebase/firestore";
 import { db } from "../firebase";
+import useAuth from "../hooks/AuthProvider";
+import { FlatList } from "react-native-web";
+import ChatRow from "./ChatRow";
 
 const ChatList = () => {
   const [Matches, setMatches] = useStateate([]);
+  const { user } = useAuth();
   useEffect(() => {
     onSnapshot(
       query(
         collection(db, "matches"),
-        where("usersMatches", "array-contains", user.uid)
+        where("usersMatched", "array-contains", user.uid)
       ),
       (snapshot) =>
         setMatches(
-          snapshots.docs.map((doc) => ({
+          snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
           }))
         )
     );
-  }, []);
-  return (
-    <View style={tw("flex-1")}>
-      <Text>ChatList</Text>
+  }, [user]);
+  return Matches.length > 0 ? (
+    <FlatList
+      style={tw("h-full")}
+      data={Matches}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => <ChatRow matchDetails={item} />}
+    />
+  ) : (
+    <View style={tw("p-5")}>
+      <Text style={tw("text-center text-lg")}>
+        You currently have no matches
+      </Text>
     </View>
   );
 };
