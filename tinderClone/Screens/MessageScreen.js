@@ -17,6 +17,8 @@ import getMatchedUserInfo from "../lib/getMatchedUserInfo";
 import useAuth from "../hooks/AuthProvider";
 import { useRoute } from "@react-navigation/native";
 import tw from "tailwind-rn";
+import SenderMessage from "../components/SenderMessage";
+import ReceiverMessage from "../components/ReceiverMessage";
 
 const MessageScreen = () => {
   const { params } = useRoute();
@@ -45,6 +47,13 @@ const MessageScreen = () => {
             data={messages}
             style={tw("pl-4")}
             keyExtractor={(item) => item.id}
+            renderItem={({ item: message }) =>
+              messages.userId === user.uid ? (
+                <SenderMessage key={message.id} message={message} />
+              ) : (
+                <ReceiverMessage key={message.id} message={message} />
+              )
+            }
           />
         </TouchableWithoutFeedback>
         <View
