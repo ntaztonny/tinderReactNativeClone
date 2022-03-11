@@ -87,6 +87,8 @@ const HomeScreen = () => {
     console.log(`You swiped PASS on ${userSwiped.displayName}`);
     setDoc(doc(db, "users", user.uid, "passes", userSwiped.id), userSwiped);
   };
+
+  //what happens when I swipe right
   const swipeRight = async (cardIndex) => {
     if (!profiles[cardIndex]) return;
     const userSwiped = profiles[cardIndex];
@@ -105,11 +107,7 @@ const HomeScreen = () => {
             doc(db, "users", user.uid, "swipes", userSwiped.id),
             userSwiped
           );
-          //change to matchng screen
-          navigation.navigate("Match", {
-            loggedInProfile,
-            userSwiped,
-          });
+
           // Create a match ==========================
           // The matching code doesnt seem to work!! try debugging it tomorrow
 
@@ -120,6 +118,12 @@ const HomeScreen = () => {
             },
             usersMatched: [user.uid, userSwiped.id],
             timestamp: serverTimestamp(),
+          });
+
+          //change to matchng screen
+          navigation.navigate("Match", {
+            loggedInProfile,
+            userSwiped,
           });
         } else {
           //this current user is the first to swipe on the person or didnt get swipped on

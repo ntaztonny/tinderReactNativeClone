@@ -1,18 +1,18 @@
 import { useNavigation } from "@react-navigation/native";
-import { TwitterAuthProvider } from "firebase/auth";
 import React, { useEffect, useState } from "react";
-import { TouchableOpacity, Text, Image, StyleSheet } from "react-native";
+import { TouchableOpacity, Text, Image, StyleSheet, View } from "react-native";
 import getMatchedUserInfo from "../lib/getMatchedUserInfo";
 import tw from "tailwind-rn";
+import useAuth from "../hooks/AuthProvider";
 
 function ChatRow({ matchDetails }) {
   const navigation = useNavigation();
   const { user } = useAuth();
-  const [machedUserInfo, setMatchedUserInfo] = useState(null);
+  const [matchedUserInfo, setMatchedUserInfo] = useState(null);
 
   useEffect(() => {
-    setMatchedUserInfo(getMatchedUserInfo(MatchDetails.users, user.uid));
-  }, [MatchDetails, User]);
+    setMatchedUserInfo(getMatchedUserInfo(matchDetails.users, user.uid));
+  }, [matchDetails, user]);
 
   //useEffect(()=>{}, [])
   return (
@@ -24,8 +24,15 @@ function ChatRow({ matchDetails }) {
     >
       <Image
         style={tw("rounded-full h-16 w-16 mr-4")}
-        source={{ uri: machedUserInfo?.photoURL }}
+        //source={{ uri: matchedUserInfo.photoURL }}
+        source={{ uri: matchDetails.photoURL }}
       />
+      <View>
+        <Text style={tw("text-lg font-semibold")}>
+          {matchDetails?.diplayName}
+        </Text>
+        {/* `<Text>{lastMessage}</Text> */}
+      </View>
     </TouchableOpacity>
   );
 }

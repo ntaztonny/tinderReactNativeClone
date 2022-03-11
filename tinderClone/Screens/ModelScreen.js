@@ -15,7 +15,7 @@ const ModelScreen = () => {
   const incompleteForm = !image || !job || !age;
 
   useEffect(() => {
-    navigation.setOptions({
+     navigation.setOptions({
       headerShown: true,
       headerTitle: "Update your profile",
       headerStyle: {
@@ -23,6 +23,7 @@ const ModelScreen = () => {
       },
       headerTitleStyle: { color: "white" },
     });
+    
   }, []);
 
   const updateUserProfile = () => {
