@@ -17,6 +17,11 @@ function ChatRow({ matchDetails }) {
   //useEffect(()=>{}, [])
   return (
     <TouchableOpacity
+      onPress={() => {
+        navigation.navigate("Message", {
+          matchDetails,
+        });
+      }}
       style={[
         tw("flex-row items-center py-3 px-5 bg-white mx-3 my-1 rounded-lg"),
         styles.cardshadow,
@@ -25,13 +30,13 @@ function ChatRow({ matchDetails }) {
       <Image
         style={tw("rounded-full h-16 w-16 mr-4")}
         //source={{ uri: matchedUserInfo.photoURL }}
-        source={{ uri: matchDetails.photoURL }}
+        source={{ uri: matchDetails?.photoURL }}
       />
       <View>
         <Text style={tw("text-lg font-semibold")}>
-          {matchDetails?.diplayName}
+          {matchDetails?.displayName}
         </Text>
-        {/* `<Text>{lastMessage}</Text> */}
+        <Text>Messages</Text>
       </View>
     </TouchableOpacity>
   );
